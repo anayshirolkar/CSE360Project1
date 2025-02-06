@@ -1,5 +1,6 @@
-<!--                                          //  PHASE 1   // 
-Team members:
+#Phase 1
+
+###Team members:
 Anay Shirolkar
 Chakshu Jain
 Diya Chaudhari
@@ -24,8 +25,9 @@ We are building upon provided foundational code to implement new user stories wh
 
 Gantt Chart Link - https://docs.google.com/spreadsheets/d/1Eqem_eECaQ4lPMkFtNW5SqAtTPISNjh6-oijKPttYK4/edit?gid=0#gid=0
 
-ScreenCast recordings 1. - https://github.com/anayshirolkar/CSE360Project1/tree/main/Standup_Meetings/Project_Phase1_Meets
-ScreenCast recordings 2. - https://github.com/anayshirolkar/CSE360Project1/tree/main/Standup_Meetings/Project_Phase1_Meets
+standup meeting 1. - https://github.com/anayshirolkar/CSE360Project1/tree/main/Standup_Meetings/Project_Phase1_Meets
+standup meeting 2. - https://github.com/anayshirolkar/CSE360Project1/tree/main/Standup_Meetings/Project_Phase1_Meets
+screencast 1. - https://github.com/anayshirolkar/CSE360Project1/blob/main/screencasts%20phase%201/screencast%201.mp4
 
 
- -->
+

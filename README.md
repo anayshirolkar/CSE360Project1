@@ -1,12 +1,12 @@
 # Phase 1
 
 ### Team members:
-Anay Shirolkar
-Chakshu Jain
-Diya Chaudhari
-Rishith Mody
-Lubna Firdaus
-Prajakta Kadukar
+1. Anay Shirolkar
+2. Chakshu Jain
+3. Diya Chaudhari
+4. Rishith Mody
+5. Lubna Firdaus
+6. Prajakta Kadukar
 
 The goal of this project is to develop a robust, secure, and user-friendly web application that allows users to register, log in, and update their account information while ensuring data validation, security, and usability. This project goes beyond individual coursework and emphasizes collaborative software development, requiring effective team coordination, integration, and adherence to industry best practices.
 
@@ -25,9 +25,9 @@ We are building upon provided foundational code to implement new user stories wh
 
 Gantt Chart Link - https://docs.google.com/spreadsheets/d/1Eqem_eECaQ4lPMkFtNW5SqAtTPISNjh6-oijKPttYK4/edit?gid=0#gid=0
 
-standup meeting 1. - https://github.com/anayshirolkar/CSE360Project1/tree/main/Standup_Meetings/Project_Phase1_Meets
-standup meeting 2. - https://github.com/anayshirolkar/CSE360Project1/tree/main/Standup_Meetings/Project_Phase1_Meets
-screencast 1. - https://github.com/anayshirolkar/CSE360Project1/blob/main/screencasts%20phase%201/screencast%201.mp4
+- standup meeting 1 - https://github.com/anayshirolkar/CSE360Project1/tree/main/Standup_Meetings/Project_Phase1_Meets
+- standup meeting 2. - https://github.com/anayshirolkar/CSE360Project1/tree/main/Standup_Meetings/Project_Phase1_Meets
+- screencast 1. - https://github.com/anayshirolkar/CSE360Project1/blob/main/screencasts%20phase%201/screencast%201.mp4
 
 
 

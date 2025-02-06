@@ -1,6 +1,6 @@
-#Phase 1
+# Phase 1
 
-###Team members:
+### Team members:
 Anay Shirolkar
 Chakshu Jain
 Diya Chaudhari

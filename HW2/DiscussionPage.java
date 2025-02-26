@@ -24,6 +24,8 @@ public class DiscussionPage {
     private TextArea newAnswerArea;
     private Label answersLabel;
     private VBox answersContainer;
+    private Button replyButton; // New button for replying to answers
+    private String currentUsername = "CurrentUser"; // Simulated current user - you would replace this with real user authentication
 
     public DiscussionPage() {
         questions = new Questions();
@@ -177,6 +179,14 @@ public class DiscussionPage {
             answerActionButtons
         );
         
+        // Add reply button (initially hidden)
+        replyButton = new Button("Reply to Answer");
+        replyButton.setStyle("-fx-background-color: #FF9800; -fx-text-fill: white;");
+        replyButton.setVisible(false);
+        
+        // Add it to the answer action section
+        yourAnswerSection.getChildren().add(replyButton);
+        
         // Set the scroll pane in the center and your answer section at the bottom
         detailsSection.setCenter(scrollPane);
         detailsSection.setBottom(yourAnswerSection);
@@ -224,6 +234,9 @@ public class DiscussionPage {
                     // Update question detail view
                     questionTitleLabel.setText(newVal.getTitle());
                     questionDescriptionLabel.setText(newVal.getDescription());
+                    Label questionAuthorLabel = new Label("Posted by: " + newVal.getAuthor());
+                    questionAuthorLabel.setStyle("-fx-font-style: italic; -fx-font-size: 12px;");
+                    questionDetailView.getChildren().add(1, questionAuthorLabel); // Insert after title, before description
                     questionDetailView.setVisible(true);
                     
                     // Enable question action buttons
@@ -317,7 +330,7 @@ public class DiscussionPage {
                 return;
             }
 
-            Answer newAnswer = new Answer(currentQuestion.getId(), answerText);
+            Answer newAnswer = new Answer(currentQuestion.getId(), answerText, currentUsername);
             answers.addAnswer(newAnswer);
             refreshAnswersContainer(answersContainer, currentQuestion);
             newAnswerArea.clear();
@@ -326,7 +339,8 @@ public class DiscussionPage {
             currentAnswer = null;
             editAnswerButton.setDisable(true);
             deleteAnswerButton.setDisable(true);
-            submitAnswerButton.setVisible(true); // Show submit button after submitting
+            submitAnswerButton.setVisible(true);
+            replyButton.setVisible(false);
             
             showAlert("Success", "Answer submitted successfully!");
         });
@@ -342,6 +356,7 @@ public class DiscussionPage {
                 editAnswerButton.setDisable(true);
                 deleteAnswerButton.setDisable(true);
                 submitAnswerButton.setVisible(true); // Show submit button after editing
+                replyButton.setVisible(false);
             }
         });
         
@@ -370,7 +385,40 @@ public class DiscussionPage {
                     editAnswerButton.setDisable(true);
                     deleteAnswerButton.setDisable(true);
                     submitAnswerButton.setVisible(true); // Show submit button after deletion
+                    replyButton.setVisible(false);
                 }
+            }
+        });
+        
+        // In the show method, after setting up the delete answer handler
+        replyButton.setOnAction(e -> {
+            if (currentAnswer != null && currentQuestion != null) {
+                String replyText = newAnswerArea.getText().trim();
+                if (replyText.isEmpty()) {
+                    showAlert("Error", "Reply cannot be empty!");
+                    return;
+                }
+                
+                // Create a new answer that's a reply to the current answer
+                Answer newReply = new Answer(
+                    currentQuestion.getId(), 
+                    replyText, 
+                    currentUsername, 
+                    currentAnswer.getId() // Set the parent answer ID
+                );
+                
+                answers.addAnswer(newReply);
+                refreshAnswersContainer(answersContainer, currentQuestion);
+                newAnswerArea.clear();
+                
+                // Clear the answer selection
+                currentAnswer = null;
+                editAnswerButton.setDisable(true);
+                deleteAnswerButton.setDisable(true);
+                submitAnswerButton.setVisible(true);
+                replyButton.setVisible(false);
+                
+                showAlert("Success", "Reply submitted successfully!");
             }
         });
         
@@ -394,6 +442,7 @@ public class DiscussionPage {
                         deleteAnswerButton.setDisable(true);
                         submitAnswerButton.setVisible(true);
                         newAnswerArea.clear();
+                        replyButton.setVisible(false);
                         
                         // Reset all answer box styles
                         answersContainer.getChildren().forEach(node -> {
@@ -419,6 +468,7 @@ public class DiscussionPage {
                         deleteAnswerButton.setDisable(true);
                         submitAnswerButton.setVisible(true);
                         newAnswerArea.clear();
+                        replyButton.setVisible(false);
                         
                         // Reset all answer box styles
                         answersContainer.getChildren().forEach(node -> {
@@ -444,6 +494,7 @@ public class DiscussionPage {
                         deleteAnswerButton.setDisable(true);
                         submitAnswerButton.setVisible(true);
                         newAnswerArea.clear();
+                        replyButton.setVisible(false);
                         
                         // Reset all answer box styles
                         answersContainer.getChildren().forEach(node -> {
@@ -466,8 +517,10 @@ public class DiscussionPage {
     private void refreshAnswersContainer(VBox answersContainer, Question question) {
         answersContainer.getChildren().clear();
         
-        // Get answers for the current question
-        java.util.List<Answer> answersList = answers.getAnswersForQuestion(question.getId());
+        // Get answers for the current question (only top-level answers)
+        java.util.List<Answer> answersList = answers.getAnswersForQuestion(question.getId()).stream()
+            .filter(a -> a.getParentAnswerId() == null)
+            .collect(java.util.stream.Collectors.toList());
         
         if (answersList.isEmpty()) {
             Label noAnswersLabel = new Label("No answers yet. Be the first to answer!");
@@ -476,50 +529,88 @@ public class DiscussionPage {
         } else {
             // Add answers to the container
             for (Answer answer : answersList) {
-                VBox answerBox = new VBox(5);
-                answerBox.setPadding(new Insets(10));
-                answerBox.setStyle("-fx-border-color: #e0e0e0; -fx-border-radius: 5;");
-                
-                // Create answer text with wrapping
-                Label answerTextLabel = new Label(answer.getAnswerText());
-                answerTextLabel.setWrapText(true);
-                
-                // Add action buttons for each answer
-                HBox actionBox = new HBox(10);
-                Button selectButton = new Button("Select");
-                selectButton.setStyle("-fx-background-color: #2196F3; -fx-text-fill: white;");
-                
-                actionBox.getChildren().add(selectButton);
-                answerBox.getChildren().addAll(answerTextLabel, actionBox);
-                
-                // Add selection behavior
-                final Answer selectedAnswer = answer; // Local final variable to use in lambda
-                selectButton.setOnAction(e -> {
-                    // Highlight the selected answer
-                    answersContainer.getChildren().forEach(node -> {
-                        if (node instanceof VBox) {
-                            node.setStyle("-fx-border-color: #e0e0e0; -fx-border-radius: 5;");
-                        }
-                    });
-                    answerBox.setStyle("-fx-border-color: #4CAF50; -fx-border-radius: 5; -fx-border-width: 2;");
-                    
-                    // Set this as the current answer using the class field
-                    currentAnswer = selectedAnswer;
-                    
-                    // Enable edit and delete buttons - using class fields now
-                    editAnswerButton.setDisable(false);
-                    deleteAnswerButton.setDisable(false);
-                    
-                    // Hide submit button when an answer is selected
-                    submitAnswerButton.setVisible(false);
-                    
-                    // Populate answer text in the edit area - using class field
-                    newAnswerArea.setText(selectedAnswer.getAnswerText());
-                });
-                
+                VBox answerBox = createAnswerBox(answer, question);
                 answersContainer.getChildren().add(answerBox);
             }
         }
+    }
+
+    private VBox createAnswerBox(Answer answer, Question question) {
+        VBox answerBox = new VBox(5);
+        answerBox.setPadding(new Insets(10));
+        answerBox.setStyle("-fx-border-color: #e0e0e0; -fx-border-radius: 5;");
+        
+        // Author and answer text
+        Label authorLabel = new Label("Posted by: " + answer.getAuthor());
+        authorLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 12px; -fx-text-fill: #555555;");
+        
+        // Create answer text with wrapping
+        Label answerTextLabel = new Label(answer.getAnswerText());
+        answerTextLabel.setWrapText(true);
+        
+        // Add action buttons for each answer
+        HBox actionBox = new HBox(10);
+        Button selectButton = new Button("Select");
+        selectButton.setStyle("-fx-background-color: #2196F3; -fx-text-fill: white;");
+        
+        actionBox.getChildren().add(selectButton);
+        answerBox.getChildren().addAll(authorLabel, answerTextLabel, actionBox);
+        
+        // Add selection behavior
+        final Answer selectedAnswer = answer; // Local final variable to use in lambda
+        selectButton.setOnAction(e -> {
+            // Highlight the selected answer
+            answersContainer.getChildren().forEach(node -> {
+                if (node instanceof VBox) {
+                    node.setStyle("-fx-border-color: #e0e0e0; -fx-border-radius: 5;");
+                }
+            });
+            answerBox.setStyle("-fx-border-color: #4CAF50; -fx-border-radius: 5; -fx-border-width: 2;");
+            
+            // Set this as the current answer using the class field
+            currentAnswer = selectedAnswer;
+            
+            // Enable edit and delete buttons
+            editAnswerButton.setDisable(false);
+            deleteAnswerButton.setDisable(false);
+            
+            // Hide submit button and show reply button
+            submitAnswerButton.setVisible(false);
+            replyButton.setVisible(true);
+            
+            // Clear the answer text area instead of populating it with the selected answer
+            newAnswerArea.clear();
+        });
+        
+        // Add any replies to this answer
+        VBox repliesContainer = new VBox(5);
+        repliesContainer.setPadding(new Insets(0, 0, 0, 20)); // Indent replies
+        
+        // Get replies for this answer
+        java.util.List<Answer> replies = answers.getAnswersForQuestion(question.getId()).stream()
+            .filter(a -> a.getParentAnswerId() != null && a.getParentAnswerId().equals(answer.getId()))
+            .collect(java.util.stream.Collectors.toList());
+        
+        for (Answer reply : replies) {
+            VBox replyBox = new VBox(5);
+            replyBox.setPadding(new Insets(8));
+            replyBox.setStyle("-fx-border-color: #f0f0f0; -fx-border-radius: 5; -fx-background-color: #f9f9f9;");
+            
+            Label replyAuthorLabel = new Label("Reply by: " + reply.getAuthor());
+            replyAuthorLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 11px; -fx-text-fill: #555555;");
+            
+            Label replyTextLabel = new Label(reply.getAnswerText());
+            replyTextLabel.setWrapText(true);
+            
+            replyBox.getChildren().addAll(replyAuthorLabel, replyTextLabel);
+            repliesContainer.getChildren().add(replyBox);
+        }
+        
+        if (!replies.isEmpty()) {
+            answerBox.getChildren().add(repliesContainer);
+        }
+        
+        return answerBox;
     }
     
     private void showCreateQuestionDialog(ListView<Question> listView) {
@@ -572,7 +663,7 @@ public class DiscussionPage {
                     return;
                 }
                 
-                Question newQuestion = new Question(title, description);
+                Question newQuestion = new Question(title, description, currentUsername);
                 questions.addQuestion(newQuestion);
                 refreshQuestionList(listView);
                 showAlert("Success", "Question submitted successfully!");

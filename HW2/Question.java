@@ -9,11 +9,13 @@ public class Question {
     private String description;
     private Date createdAt;
     private Date updatedAt;
+    private String author; // New field
 
-    public Question(String title, String description) {
+    public Question(String title, String description, String author) {
         this.id = UUID.randomUUID().toString();
         this.title = title;
         this.description = description;
+        this.author = author;
         this.createdAt = new Date();
         this.updatedAt = new Date();
     }
@@ -24,6 +26,7 @@ public class Question {
     public String getDescription() { return description; }
     public Date getCreatedAt() { return createdAt; }
     public Date getUpdatedAt() { return updatedAt; }
+    public String getAuthor() { return author; }
 
     // Setters with validation
     public void setTitle(String title) {

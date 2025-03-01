@@ -1,138 +1,262 @@
+# CSE 360 Team Project Phase 2 – Discussion Forum
 
-Project Overview
-Our project is a fully functional discussion forum that allows users to register securely, create discussion threads, reply to posts, and engage with the community through features such as likes/upvotes and search functionality. The system is built with user safety and clarity in mind, offering confirmation pop-ups, editable content, and structured input fields.
+This repository contains the complete solution for our Phase 2 Discussion Forum project for CSE 360. The project is developed by **Team Monday 4** and includes design documents, code, testing artifacts, and supporting materials.
 
-Features
-Secure User Registration: Includes email verification, password encryption, and password reset options.
-Thread Creation & Management: Users can post questions, edit, update, or delete threads.
-Replies & Nested Threads: Supports multiple answers and nested replies to encourage interactive discussions.
-Confirmation Pop-ups: Ensures that critical actions (like deleting or editing) require user confirmation.
-Search Functionality: Dedicated search bar and filters to quickly locate relevant discussions.
-User Profiles: Each user has a profile that tracks their posts, replies, and interactions.
-Moderation Tools: Moderators have access to tools for removing inappropriate content and managing user behavior.
-Responsive UI: A scrollable layout with separate text boxes and a simplified sidebar for question titles.
-User Stories
-Registering and Feeling Secure:
-Users can sign up, log in, and reset passwords with assurance through email verification and encryption.
-The Power to Start a Conversation:
-Users can initiate threads with questions or detailed topics and have control over editing or deleting their posts.
-Engaging Through Replies:
-Users can reply to questions and answers, with structured formatting ensuring clarity.
-Showing Appreciation – Likes and Upvotes:
-A built-in mechanism to like and upvote posts, promoting quality discussions.
-Finding What Matters – Search and Filters:
-A search bar and category-based filters to help users quickly locate specific discussions.
-Your Forum Identity – Profiles and Activity Tracking:
-Personal profiles allow users to view their contributions and track past discussions.
-Keeping the Community Safe – Moderation and Admin Controls:
-Moderators can remove inappropriate content and ban users to maintain a positive community.
-Implementation Details
-Design Documents & UML Diagrams:
-Our design documents include detailed UML diagrams that map out the structure and interactions within the system.
+---
 
-Code Integration:
-The code implements the design through features such as confirmation pop-ups, structured input fields, and a dynamic, scrollable layout.
+## Table of Contents
 
-Standup Meetings & Progress:
-We conducted multiple standup meetings (from early February 2025 to late February 2025) to discuss progress, feature updates, and testing plans. Detailed screencasts of these meetings are available in the repository.
+- [Project Overview](#project-overview)
+- [Features](#features)
+- [Design Documents & Implementation Details](#design-documents--implementation-details)
+- [User Stories](#user-stories)
+- [Implementation Plan & Progress](#implementation-plan--progress)
+- [Testing](#testing)
+  - [Automated Tests](#automated-tests)
+  - [Manual Tests](#manual-tests)
+- [Repository Structure](#repository-structure)
+- [Team Members & Contributions](#team-members--contributions)
+- [Team Norms](#team-norms)
+- [Getting Started](#getting-started)
+- [Resources & Links](#resources--links)
+- [License](#license)
 
-Testing
-Automated Tests
-Questions Class:
+---
 
-Add Question
-Delete Question
-Edit Question
-Search Questions
-Answers Class:
+## Project Overview
 
-Add Answer
-Delete Answer
-Edit Answer
-Test cases are available in the repository:
+Our project is a fully functional discussion forum that enables users to:
+- Register securely with email verification and password encryption.
+- Create, edit, and delete discussion threads.
+- Reply to posts with nested responses.
+- Search and filter questions to quickly locate topics.
+- Manage content with moderation tools and a user-friendly interface.
 
-Questions Test
-Answers Test
-Manual Tests
-We developed several manual test cases to ensure full coverage:
+The system is designed with features such as confirmation pop-ups, structured input fields, scrollable layouts, and a simplified sidebar display to enhance the user experience.
 
-Test Case 1: Add Question (Student Role)
-Test Case 2: Add Answer (Student Role)
-Test Case 3: View All Questions (All Users)
-Test Case 4: View All Answers (All Users)
-Test Case 5: Search Questions (All Users)
-Test Case 6: Ask Follow-Up Questions (Nested Replies)
-Detailed steps and expected outcomes for each test case are documented in the project report.
+---
 
-Repository Structure
-bash
-Copy
-CSE360Project1/
-├── HW2/
-│   ├── src/               # Source code for the discussion forum
-│   ├── tests/             # Automated tests for Questions and Answers
-│   └── docs/              # Design documents and UML diagrams
-├── screencast/            # Screencasts for testing and standup meetings
-└── README.md              # This file
-Team Members & Contributions
-Anay Shirolkar: UML diagrams, sequence diagrams, integration modifications.
-Chakshu Jain: Implementation of features, debugging, and screencast creation.
-Diya Dineshbhai Chaudhari: Feature implementation, debugging, and standup meeting recordings.
-Lubna Firdaus: Automated tests and manual testing of CRUD operations.
-Prajakta Punjaji Kadukar: UI enhancements and integration of new features.
-Rishith Ashit Mody: Drafting user stories and guiding feature implementations.
-Team Norms
-Communication:
-Primary communication via Discord with a 24-hour response expectation.
+## Features
 
-Meetings:
-Twice weekly meetings with written agendas and documented action items.
+- **Secure Registration & Authentication:**  
+  Users can register, log in, reset passwords, and verify their email securely.
 
-Collaboration:
-Active participation in code reviews, pull requests, and documentation efforts.
+- **Thread Creation & Management:**  
+  - Create new threads (questions)  
+  - Edit or delete existing threads
 
-Conflict Resolution:
-Professional discussions and votes to resolve disagreements.
+- **Replies & Nested Threads:**  
+  - Post multiple answers  
+  - Reply to answers (nested replies) for interactive discussions
 
-Deadlines & Code Management:
-Strict adherence to deadlines and version control best practices using GitHub.
+- **Confirmation Pop-Ups:**  
+  - Confirm critical actions like deleting or editing posts
 
-Getting Started
-Prerequisites
-Java Development Kit (JDK)
-Git
-An IDE (e.g., Eclipse, IntelliJ IDEA) or any preferred text editor
-Installation
-Clone the Repository:
+- **Search & Filter:**  
+  - Dedicated search bar to locate questions  
+  - Category-based filters for easier navigation
 
-bash
-Copy
-git clone https://github.com/anayshirolkar/CSE360Project1.git
-cd CSE360Project1
-Checkout the Phase 2 Integration Branch:
+- **User Profiles & Activity Tracking:**  
+  - Each user can view their posts, replies, and overall activity
 
-bash
-Copy
-git checkout Phase_2_Integration
-Compile and Run the Application:
-Follow your IDE’s instructions or use command-line tools to build and run the application.
+- **Moderation Tools:**  
+  - Moderators can remove inappropriate content and ban disruptive users
 
-Resources & Links
-GitHub Repository:
-Main Repository
+- **Responsive UI:**  
+  - Scrollable layout with structured input fields and a clean sidebar for questions
 
-HW2 Code & Integration:
-Phase 2 Integration Branch
+---
 
-Gantt Chart & Implementation Plan:
-Gantt Chart
+## Design Documents & Implementation Details
 
-Screencasts:
-Screencasts Directory
+- **UML Diagrams & Design Documents:**  
+  The project’s design is based on detailed UML diagrams that map out the system’s structure and interactions.
+
+- **Code Implementation:**  
+  The code implements the design with:
+  - Confirmation dialogs to prevent accidental edits/deletes
+  - Separate text boxes for question and answer inputs
+  - A dynamic and scrollable layout
+  - A robust search functionality for finding specific questions
+
+- **Integration & Standup Meetings:**  
+  Our implementation plan was discussed and refined during multiple standup meetings. Detailed screencasts are provided in the repository for each meeting.
+
+---
+
+## User Stories
+
+1. **Registering and Feeling Secure:**  
+   - Users sign up, log in, and reset passwords securely with email verification and encryption.
+   
+2. **The Power to Start a Conversation:**  
+   - Users can create threads for open-ended questions or detailed topics with options to edit or delete.
+   
+3. **Engaging Through Replies:**  
+   - Users can post multiple answers and nested replies, ensuring a structured discussion.
+   
+4. **Showing Appreciation – Likes and Upvotes:**  
+   - A like/upvote system encourages quality contributions and highlights insightful responses.
+   
+5. **Finding What Matters – Search and Filters:**  
+   - A search bar and category filters allow users to quickly locate relevant topics.
+   
+6. **Your Forum Identity – Profiles and Activity Tracking:**  
+   - Personal profiles display a user’s posts, replies, and overall activity.
+   
+7. **Keeping the Community Safe – Moderation and Admin Controls:**  
+   - Moderators have the ability to remove inappropriate content and manage user behavior.
+
+---
+
+## Implementation Plan & Progress
+
+- **Gantt Chart & Implementation Plan:**  
+  Our project plan is detailed in our [Gantt Chart](https://docs.google.com/spreadsheets/d/1Eqem_eECaQ4lPMkFtNW5SqAtTPISNjh6-oijKPttYK4/edit?usp=sharing).
+
+- **Standup Meetings:**  
+  We held a series of meetings with the following highlights:
+  
+  - **Standup Meeting 1 (2/8/2025):**  
+    - Planned project structure and tasks  
+    - Uploaded initial code to GitHub
+  
+  - **Standup Meeting 2 (2/12/2025):**  
+    - Shared progress on features  
+    - Selected best features for implementation
+  
+  - **Standup Meeting 3 (2/15/2025):**  
+    - Discussed work progress and issues  
+    - Listed additional features for the forum
+  
+  - **Standup Meeting 4 (2/19/2025):**  
+    - Finalized implementation approach and testing strategy
+  
+  - **Standup Meeting 5 (2/22/2025):**  
+    - Discussed nested thread feature and documentation updates
+  
+  - **Standup Meeting 6 (2/26/2025):**  
+    - Finalized screencast plan and updated test results
+
+---
+
+## Testing
+
+### Automated Tests
+
+Tests have been implemented to ensure the integrity of both the Questions and Answers classes:
+
+- **Questions Tests:**  
+  - Add Question  
+  - Delete Question  
+  - Edit Question  
+  - Search Questions  
+  [Questions Test Code](https://github.com/anayshirolkar/CSE360Project1/blob/Phase_2_Integration/HW2/QuestionsTest.java)
+
+- **Answers Tests:**  
+  - Add Answer  
+  - Delete Answer  
+  - Edit Answer  
+  [Answers Test Code](https://github.com/anayshirolkar/CSE360Project1/blob/Phase_2_Integration/HW2/AnswersTest.java)
+
+### Manual Tests
+
+We developed detailed test cases for manual verification:
+
+- **Test Case 1: Add Question (Student Role)**  
+  - **Operation:** Create (Add Question)  
+  - **Expected Outcome:** Question added and confirmation provided
+  
+- **Test Case 2: Add Answer (Student Role)**  
+  - **Operation:** Create (Add Answer)  
+  - **Expected Outcome:** Answer added and confirmation provided
+  
+- **Test Case 3: View All Questions (All Users)**  
+  - **Operation:** Read (View Questions)  
+  - **Expected Outcome:** Display list of questions with IDs and content (marked [Resolved] if applicable)
+  
+- **Test Case 4: View All Answers (All Users)**  
+  - **Operation:** Read (View Answers)  
+  - **Expected Outcome:** Display list of answers under each question
+  
+- **Test Case 5: View Searched Questions (All Users)**  
+  - **Operation:** Read (Search Questions)  
+  - **Expected Outcome:** List of questions containing the searched keyword
+  
+- **Test Case 6: Ask Follow-Up Questions (All Users)**  
+  - **Operation:** Create (Nested Replies)  
+  - **Expected Outcome:** Display threaded/nested replies preserving sequence
+
+---
+
+## Repository Structure
 
 
+---
 
-Gantt Chart Link - https://docs.google.com/spreadsheets/d/1Eqem_eECaQ4lPMkFtNW5SqAtTPISNjh6-oijKPttYK4/edit?gid=0#gid=0
+## Team Members & Contributions
 
+- **Anay Shirolkar:**  
+  - Created UML diagrams and sequence diagrams  
+  - Integrated designs from multiple features
 
+- **Chakshu Jain:**  
+  - Implemented major features  
+  - Debugged code and test cases  
+  - Produced screencasts
 
+- **Diya Dineshbhai Chaudhari:**  
+  - Worked on feature implementation and debugging  
+  - Recorded and uploaded standup meetings
+
+- **Lubna Firdaus:**  
+  - Wrote automated tests and performed manual testing  
+  - Documented standup meeting notes
+
+- **Prajakta Punjaji Kadukar:**  
+  - Integrated new UI features and enhancements
+
+- **Rishith Ashit Mody:**  
+  - Developed user stories and guided feature implementation
+
+---
+
+## Team Norms
+
+- **Communication:**  
+  - Primary communication via Discord  
+  - Responses expected within 24 hours; urgent issues handled via calls or quick meetings
+
+- **Meetings:**  
+  - Twice weekly meetings with written agendas and documented actions  
+  - Members to notify the team if they cannot attend and catch up using meeting notes
+
+- **Collaboration:**  
+  - Active participation and review of each other’s work  
+  - Code changes are managed through pull requests and reviewed before merging
+
+- **Conflict Resolution:**  
+  - Professional discussion and voting for resolving disagreements  
+  - Constructive criticism focused on work output
+
+- **Deadlines & Code Management:**  
+  - Strict adherence to deadlines  
+  - Version control via GitHub with detailed documentation and code comments
+
+---
+
+## Getting Started
+
+### Prerequisites
+
+- Java Development Kit (JDK)
+- Git
+- An IDE (e.g., Eclipse, IntelliJ IDEA) or your preferred text editor
+
+### Installation
+
+1. **Clone the Repository:**
+
+   ```bash
+   git clone https://github.com/anayshirolkar/CSE360Project1.git
+   cd CSE360Project1

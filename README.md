@@ -1,3 +1,4 @@
+
 Project Overview
 Our project is a fully functional discussion forum that allows users to register securely, create discussion threads, reply to posts, and engage with the community through features such as likes/upvotes and search functionality. The system is built with user safety and clarity in mind, offering confirmation pop-ups, editable content, and structured input fields.
 

@@ -19,7 +19,7 @@ This repository contains the complete solution for our Phase 2 Discussion Forum 
 - [Team Norms](#team-norms)
 - [Getting Started](#getting-started)
 - [Resources & Links](#resources--links)
-- [License](#license)
+
 
 ---
 

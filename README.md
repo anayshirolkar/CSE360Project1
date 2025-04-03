@@ -39,9 +39,9 @@ This project implements an enhanced discussion forum system supporting multiple 
 - **GitHub Repository:** [GitHub Repo Link](#)
 - **Template:** [[Template Link](https://arizonastateu-my.sharepoint.com/:w:/g/personal/lfirdaus_sundevils_asu_edu/EbuToRTFtllJpkD7UWVzdWYB1HzZGu38KzH7ULKUcFxoUg)](#)
 - **Screencasts:**  
-- Screencast 1 (Demo, Code & JUnit Testing): [Link](#)  
-- Screencast 2 (Architecture, Design & Code Alignment): [Link](#)  
-- Screencast 3 (Standup Meetings): [Link](#)
+- Screencast 1 (Demo, Code & JUnit Testing): [Link](Team_Project_Repo/TP3/Screencasts)  
+- Screencast 2 (Architecture, Design & Code Alignment): [Link](Team_Project_Repo/TP3/Screencasts)  
+- Screencast 3 (Standup Meetings): [Link](Team_Project_Repo/TP3/Screencasts)
 - **Standup Meetings:** [Standup Meetings Link](#)
 
 ## Team Members

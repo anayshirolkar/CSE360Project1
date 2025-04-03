@@ -59,4 +59,7 @@ public class Answers {
     public List<Answer> getAllAnswers() {
         return new ArrayList<>(answers); // Return a copy to prevent external modification
     }
+    public void clearAll() {
+        answers.clear();
+    }
 }

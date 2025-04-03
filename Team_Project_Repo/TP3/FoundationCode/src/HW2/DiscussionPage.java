@@ -3,12 +3,17 @@ package HW2;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
+import javafx.scene.text.Text;
+import javafx.scene.text.TextFlow;
 import javafx.stage.Stage;
 import javafx.stage.Modality;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 
+import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.List;
 
 import databasePart1.DatabaseHelper;
 import javafx.animation.PauseTransition;
@@ -53,6 +58,9 @@ public class DiscussionPage {
         }
         
         System.out.println("DiscussionPage initialized with username: " + this.currentUsername + ", role: " + this.userRole);
+        
+        // Load existing questions and answers from database
+        loadDataFromDatabase();
     }
 
     // Maintain a default constructor for backward compatibility
@@ -331,7 +339,7 @@ public class DiscussionPage {
             }
         });
         
-        // Delete question handler
+        // Update these parts in the deleteQuestionButton handler
         deleteQuestionButton.setOnAction(e -> {
             if (currentQuestion != null) {
                 boolean confirmed = showConfirmationDialog(
@@ -341,6 +349,17 @@ public class DiscussionPage {
                 );
                 
                 if (confirmed) {
+                    // Delete from database if available
+                    if (databaseHelper != null) {
+                        try {
+                            databaseHelper.deleteQuestion(currentQuestion.getId());
+                        } catch (SQLException ex) {
+                            System.err.println("Error deleting question: " + ex.getMessage());
+                            showAlert("Error", "Failed to delete question: " + ex.getMessage());
+                            return;
+                        }
+                    }
+                    
                     questions.deleteQuestion(currentQuestion.getId());
                     refreshQuestionList(questionListView);
                     
@@ -414,7 +433,7 @@ public class DiscussionPage {
             }
         });
         
-        // Delete answer handler
+        // Update these parts in the deleteAnswerButton handler
         deleteAnswerButton.setOnAction(e -> {
             if (currentAnswer != null) {
                 boolean confirmed = showConfirmationDialog(
@@ -423,6 +442,17 @@ public class DiscussionPage {
                 );
                 
                 if (confirmed) {
+                    // Delete from database if available
+                    if (databaseHelper != null) {
+                        try {
+                            databaseHelper.deleteAnswer(currentAnswer.getId());
+                        } catch (SQLException ex) {
+                            System.err.println("Error deleting answer: " + ex.getMessage());
+                            showAlert("Error", "Failed to delete answer: " + ex.getMessage());
+                            return;
+                        }
+                    }
+                    
                     answers.deleteAnswer(currentAnswer.getId());
                     refreshAnswersContainer(answersContainer, currentQuestion);
                     
@@ -621,44 +651,67 @@ public class DiscussionPage {
 
     private VBox createAnswerBox(Answer answer, Question question) {
         VBox answerBox = new VBox(5);
-        answerBox.setPadding(new Insets(10));
+        answerBox.setPadding(new Insets(8));
         answerBox.setStyle("-fx-border-color: #e0e0e0; -fx-border-radius: 5;");
         
-        // Author and answer text
-        Label authorLabel = new Label("Posted by: " + answer.getAuthor());
-        authorLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 12px; -fx-text-fill: #555555;");
+        // User info section
+        HBox userInfoBox = new HBox(10);
+        Label userLabel = new Label("By: " + answer.getAuthor());
+        userLabel.setStyle("-fx-font-weight: bold;");
         
-        // Create answer text with wrapping
-        Label answerTextLabel = new Label(answer.getAnswerText());
-        answerTextLabel.setWrapText(true);
+        // Date display if available
+        Label dateLabel = new Label("Posted: " + formatDate(answer.getCreatedAt()));
+        dateLabel.setStyle("-fx-text-fill: #757575;");
         
-        // Add action buttons for each answer
-        HBox actionBox = new HBox(10);
-        Button selectButton = new Button("Select");
-        selectButton.setStyle("-fx-background-color: #2196F3; -fx-text-fill: white;");
+        userInfoBox.getChildren().addAll(userLabel, dateLabel);
         
-        actionBox.getChildren().add(selectButton);
-        answerBox.getChildren().addAll(authorLabel, answerTextLabel, actionBox);
+        // Text content
+        TextFlow answerTextFlow = new TextFlow();
+        Text answerText = new Text(answer.getAnswerText());
+        answerText.setWrappingWidth(400);
+        answerTextFlow.getChildren().add(answerText);
         
-        // Add selection behavior
-        final Answer selectedAnswer = answer; // Local final variable to use in lambda
-        selectButton.setOnAction(e -> {
-            // Highlight the selected answer
-            answersContainer.getChildren().forEach(node -> {
-                if (node instanceof VBox) {
-                    node.setStyle("-fx-border-color: #e0e0e0; -fx-border-radius: 5;");
+        // Add to answer box
+        answerBox.getChildren().addAll(userInfoBox, answerTextFlow);
+        
+        // Add reviews section if reviews exist for this answer
+        if (databaseHelper != null) {
+            try {
+                // Fetch reviews for this answer
+                List<Review> reviews = databaseHelper.getReviewsForAssociatedId(answer.getId());
+                
+                if (!reviews.isEmpty()) {
+                    // Create a separator
+                    Separator separator = new Separator();
+                    separator.setPadding(new Insets(5, 0, 5, 0));
+                    
+                    // Create a label for reviews section
+                    Label reviewsLabel = new Label("Reviewer Feedback (" + reviews.size() + ")");
+                    reviewsLabel.setStyle("-fx-font-weight: bold; -fx-text-fill: #2196F3;");
+                    
+                    // Add separator and label
+                    answerBox.getChildren().addAll(separator, reviewsLabel);
+                    
+                    // Add each review
+                    for (Review review : reviews) {
+                        VBox reviewBox = createReviewBox(review);
+                        answerBox.getChildren().add(reviewBox);
+                    }
                 }
-            });
-            answerBox.setStyle("-fx-border-color: #4CAF50; -fx-border-radius: 5; -fx-border-width: 2;");
+            } catch (SQLException e) {
+                System.err.println("Error retrieving reviews: " + e.getMessage());
+                e.printStackTrace();
+            }
+        }
+        
+        // Make the answer clickable for selection
+        answerBox.setOnMouseClicked(e -> {
+            // Set current answer to the clicked one
+            currentAnswer = answer;
             
-            // Set this as the current answer using the class field
-            currentAnswer = selectedAnswer;
-            
-            // Enable edit and delete buttons
+            // Update UI state
             editAnswerButton.setDisable(false);
             deleteAnswerButton.setDisable(false);
-            
-            // Hide submit button and show reply button
             submitAnswerButton.setVisible(false);
             replyButton.setVisible(true);
             
@@ -676,17 +729,7 @@ public class DiscussionPage {
             .collect(java.util.stream.Collectors.toList());
         
         for (Answer reply : replies) {
-            VBox replyBox = new VBox(5);
-            replyBox.setPadding(new Insets(8));
-            replyBox.setStyle("-fx-border-color: #f0f0f0; -fx-border-radius: 5; -fx-background-color: #f9f9f9;");
-            
-            Label replyAuthorLabel = new Label("Reply by: " + reply.getAuthor());
-            replyAuthorLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 11px; -fx-text-fill: #555555;");
-            
-            Label replyTextLabel = new Label(reply.getAnswerText());
-            replyTextLabel.setWrapText(true);
-            
-            replyBox.getChildren().addAll(replyAuthorLabel, replyTextLabel);
+            VBox replyBox = createAnswerBox(reply, question);
             repliesContainer.getChildren().add(replyBox);
         }
         
@@ -695,6 +738,47 @@ public class DiscussionPage {
         }
         
         return answerBox;
+    }
+
+    // Add this helper method to create review boxes
+    private VBox createReviewBox(Review review) {
+        VBox reviewBox = new VBox(3);
+        reviewBox.setPadding(new Insets(5));
+        reviewBox.setStyle("-fx-background-color: #f5f5f5; -fx-border-radius: 3;");
+        
+        // Reviewer info
+        HBox headerBox = new HBox(10);
+        Label reviewerLabel = new Label("Reviewer: " + review.getReviewer());
+        reviewerLabel.setStyle("-fx-font-size: 11px; -fx-font-weight: bold;");
+        
+        // Create rating stars
+        HBox ratingBox = new HBox(2);
+        for (int i = 0; i < 5; i++) {
+            Label star = new Label(i < review.getRating() ? "★" : "☆");
+            star.setStyle("-fx-text-fill: " + (i < review.getRating() ? "#FFD700" : "#AAAAAA") + "; -fx-font-size: 11px;");
+            ratingBox.getChildren().add(star);
+        }
+        
+        headerBox.getChildren().addAll(reviewerLabel, ratingBox);
+        
+        // Review content
+        Label contentLabel = new Label(review.getContent());
+        contentLabel.setWrapText(true);
+        contentLabel.setStyle("-fx-font-size: 12px;");
+        
+        // Date display if available
+        Label dateLabel = new Label("Reviewed: " + formatDate(review.getCreatedAt()));
+        dateLabel.setStyle("-fx-font-size: 10px; -fx-text-fill: #757575;");
+        
+        reviewBox.getChildren().addAll(headerBox, contentLabel, dateLabel);
+        return reviewBox;
+    }
+
+    // Add this helper method to format dates
+    private String formatDate(java.util.Date date) {
+        if (date == null) return "N/A";
+        java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("MMM dd, yyyy");
+        return sdf.format(date);
     }
     
     private void showCreateQuestionDialog(ListView<Question> listView) {
@@ -920,5 +1004,69 @@ public class DiscussionPage {
     private void refreshQuestionList(ListView<Question> listView) {
         listView.getItems().clear();
         listView.getItems().addAll(questions.getAllQuestions());
+    }
+
+    private void loadDataFromDatabase() {
+        if (databaseHelper == null) {
+            System.err.println("DatabaseHelper is null, can't load data from database");
+            return;
+        }
+        
+        try {
+            // Load all questions from the database
+            String query = "SELECT * FROM questions ORDER BY createdAt DESC";
+            try (Statement stmt = databaseHelper.getConnection().createStatement();
+                 ResultSet rs = stmt.executeQuery(query)) {
+                
+                while (rs.next()) {
+                    Question question = new Question(
+                        rs.getString("title"),
+                        rs.getString("description"),
+                        rs.getString("author")
+                    );
+                    question.setId(rs.getString("id"));
+                    questions.addQuestion(question);
+                    System.out.println("Loaded question: " + question.getTitle());
+                }
+            }
+            
+            // Load all answers from the database
+            query = "SELECT * FROM answers ORDER BY createdAt DESC";
+            try (Statement stmt = databaseHelper.getConnection().createStatement();
+                 ResultSet rs = stmt.executeQuery(query)) {
+                
+                while (rs.next()) {
+                    Answer answer;
+                    String parentId = rs.getString("parentAnswerId");
+                    
+                    if (parentId != null && !parentId.isEmpty()) {
+                        // This is a reply to another answer
+                        answer = new Answer(
+                            rs.getString("questionId"),
+                            rs.getString("answerText"),
+                            rs.getString("author"),
+                            parentId
+                        );
+                    } else {
+                        // This is a direct answer to a question
+                        answer = new Answer(
+                            rs.getString("questionId"),
+                            rs.getString("answerText"),
+                            rs.getString("author")
+                        );
+                    }
+                    
+                    answer.setId(rs.getString("id"));
+                    answers.addAnswer(answer);
+                }
+            }
+            
+            System.out.println("Successfully loaded " + questions.getAllQuestions().size() + 
+                              " questions and " + answers.getAllAnswers().size() + " answers");
+                              
+        } catch (SQLException e) {
+            System.err.println("Error loading data from database: " + e.getMessage());
+            e.printStackTrace();
+        }
     }
 }

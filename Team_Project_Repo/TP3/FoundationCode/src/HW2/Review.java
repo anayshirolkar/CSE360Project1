@@ -91,4 +91,25 @@ public class Review {
         this.type = type;
         this.updatedAt = new Date();
     }
+
+    public void setCreatedAt(Date createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public void setUpdatedAt(Date updatedAt) {
+        this.updatedAt = updatedAt;
+    }
+
+    /**
+     * Sets the ID of the review. This is primarily used when loading reviews from the database
+     * where we want to preserve the original ID rather than generating a new one.
+     * 
+     * @param id The ID to set for this review
+     */
+    public void setId(String id) {
+        if (id == null || id.trim().isEmpty()) {
+            throw new IllegalArgumentException("Review ID cannot be null or empty");
+        }
+        this.id = id;
+    }
 }

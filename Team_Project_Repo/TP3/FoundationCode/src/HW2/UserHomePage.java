@@ -4,6 +4,7 @@ import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
+import java.sql.SQLException; // Add this import statement
 
 import databasePart1.DatabaseHelper;
 
@@ -13,14 +14,26 @@ import databasePart1.DatabaseHelper;
 public class UserHomePage {
     private DatabaseHelper databaseHelper;
     private String username;
+    private String role; // Add this field
 
-    public UserHomePage() {
-        // Default constructor for backward compatibility
+    // Existing constructors
+    public UserHomePage(DatabaseHelper databaseHelper) {
+        this.databaseHelper = databaseHelper;
+        this.username = "User";
+        this.role = "user"; // Default role
     }
-    
+
     public UserHomePage(DatabaseHelper databaseHelper, String username) {
         this.databaseHelper = databaseHelper;
         this.username = username;
+        this.role = "user"; // Default role 
+    }
+
+    // Add a new constructor that accepts role
+    public UserHomePage(DatabaseHelper databaseHelper, String username, String role) {
+        this.databaseHelper = databaseHelper;
+        this.username = username;
+        this.role = role;
     }
 
     public void show(Stage primaryStage) {
@@ -42,9 +55,96 @@ public class UserHomePage {
         Button reviewsButton = new Button("Reviews & Trusted Reviewers");
         reviewsButton.setStyle("-fx-font-size: 14px; -fx-background-color: #2196F3; -fx-text-fill: white; -fx-min-width: 220px;");
         
-        // Button to request reviewer status
-        Button requestReviewerButton = new Button("Request Reviewer Status");
-        requestReviewerButton.setStyle("-fx-font-size: 14px; -fx-background-color: #FF9800; -fx-text-fill: white; -fx-min-width: 220px;");
+        // Check user's actual role in the database instead of relying on the passed role parameter
+        boolean isReviewer = false;
+        if (databaseHelper != null && username != null) {
+            try {
+                String actualRole = databaseHelper.getUserRole(username);
+                isReviewer = "reviewer".equals(actualRole);
+            } catch (Exception e) {
+                System.err.println("Error checking user role: " + e.getMessage());
+                e.printStackTrace();
+                // Fall back to the passed role if database check fails
+                isReviewer = "reviewer".equals(role);
+            }
+        }
+        
+        // Create Button instance outside of conditional blocks
+        final Button reviewerActionButton;
+        
+        if (isReviewer) {
+            // User is a reviewer, create the dashboard button
+            reviewerActionButton = new Button("Go to Reviewer Dashboard");
+            reviewerActionButton.setStyle("-fx-font-size: 14px; -fx-background-color: #FF9800; -fx-text-fill: white; -fx-min-width: 220px;");
+            
+            // Action handler for reviewer dashboard button
+            reviewerActionButton.setOnAction(e -> {
+                ReviewerHomePage reviewerPage = new ReviewerHomePage(databaseHelper, username);
+                reviewerPage.show(primaryStage);
+            });
+        } else {
+            // User is not a reviewer, check if they have a pending request
+            boolean hasPendingRequest = false;
+            if (databaseHelper != null && username != null) {
+                try {
+                    java.util.Map<String, Object> requestDetails = databaseHelper.getReviewerRequestDetails(username);
+                    hasPendingRequest = !requestDetails.isEmpty() && "PENDING".equals(requestDetails.get("status"));
+                } catch (Exception e) {
+                    System.err.println("Error checking pending requests: " + e.getMessage());
+                    // Assume no pending request if check fails
+                }
+            }
+            
+            if (hasPendingRequest) {
+                // Create a disabled "pending" button
+                reviewerActionButton = new Button("Reviewer Request Pending");
+                reviewerActionButton.setStyle("-fx-font-size: 14px; -fx-background-color: #9E9E9E; -fx-text-fill: white; -fx-min-width: 220px;");
+                reviewerActionButton.setDisable(true);
+            } else {
+                // Create a "request" button
+                reviewerActionButton = new Button("Request Reviewer Status");
+                reviewerActionButton.setStyle("-fx-font-size: 14px; -fx-background-color: #FF9800; -fx-text-fill: white; -fx-min-width: 220px;");
+                
+                // Create a placeholder in layout for the button
+                final int buttonIndex = layout.getChildren().size() + 3; // +3 accounts for userLabel, discussionButton, and reviewsButton
+                
+                // For capturing the button in lambda
+                final Button reviewerButton = reviewerActionButton;
+                
+                reviewerActionButton.setOnAction(e -> {
+                    if (databaseHelper != null && username != null) {
+                        try {
+                            // Use submitReviewerRequest
+                            databaseHelper.submitReviewerRequest(username);
+                            
+                            // Show confirmation dialog
+                            Alert alert = new Alert(Alert.AlertType.INFORMATION);
+                            alert.setTitle("Request Submitted");
+                            alert.setHeaderText(null);
+                            alert.setContentText("Your request for reviewer status has been submitted. An administrator will review your request.");
+                            alert.showAndWait();
+                            
+                            // Create a new button to replace the current one
+                            Button newButton = new Button("Reviewer Request Pending");
+                            newButton.setStyle("-fx-font-size: 14px; -fx-background-color: #9E9E9E; -fx-text-fill: white; -fx-min-width: 220px;");
+                            newButton.setDisable(true);
+                            
+                            // Replace the button in the layout
+                            layout.getChildren().remove(reviewerButton);
+                            layout.getChildren().add(buttonIndex - 1, newButton); // -1 because we just removed an item
+                            
+                        } catch (Exception ex) {
+                            // Show error dialog
+                            Alert alert = new Alert(Alert.AlertType.ERROR);
+                            alert.setTitle("Error");
+                            alert.setHeaderText(null);
+                            alert.setContentText("Error submitting request: " + ex.getMessage());
+                            alert.showAndWait();
+                        }
+                    }
+                });
+            }
+        }
         
         // Action handler for discussion button
         discussionButton.setOnAction(e -> {
@@ -73,43 +173,27 @@ public class UserHomePage {
             }
         });
 
-        // Action handler for reviewer request button
-        requestReviewerButton.setOnAction(e -> {
-            if (databaseHelper != null && username != null) {
-                try {
-                    // Use submitReviewerRequest instead of requestReviewerStatus
-                    databaseHelper.submitReviewerRequest(username);
-                    
-                    // Show confirmation dialog
-                    Alert alert = new Alert(Alert.AlertType.INFORMATION);
-                    alert.setTitle("Request Submitted");
-                    alert.setHeaderText(null);
-                    alert.setContentText("Your request for reviewer status has been submitted. An administrator will review your request.");
-                    alert.showAndWait();
-                } catch (Exception ex) {
-                    // Show error dialog
-                    Alert alert = new Alert(Alert.AlertType.ERROR);
-                    alert.setTitle("Error");
-                    alert.setHeaderText(null);
-                    alert.setContentText("Error submitting request: " + ex.getMessage());
-                    alert.showAndWait();
-                }
-            } else {
-                // Fallback for demo when database is not available
-                Alert alert = new Alert(Alert.AlertType.INFORMATION);
-                alert.setTitle("Request Submitted");
-                alert.setHeaderText(null);
-                alert.setContentText("Your request for reviewer status has been submitted. An administrator will review your request.");
-                alert.showAndWait();
-            }
-        });
-
         // Add label and buttons to layout
-        layout.getChildren().addAll(userLabel, discussionButton, reviewsButton, requestReviewerButton);
+        layout.getChildren().add(userLabel);
+        layout.getChildren().add(discussionButton);
+        layout.getChildren().add(reviewsButton);
+        
+        // Add reviewer action button
+        layout.getChildren().add(reviewerActionButton);
+
+        // Button to log out
+        Button logoutButton = new Button("Logout");
+        logoutButton.setStyle("-fx-font-size: 14px; -fx-background-color: #f44336; -fx-text-fill: white; -fx-min-width: 220px;");
+        
+        logoutButton.setOnAction(e -> {
+            new SetupLoginSelectionPage(databaseHelper).show(primaryStage);
+        });
+        
+        layout.getChildren().add(logoutButton);
 
         // Create scene and set it on the primary stage
         Scene userScene = new Scene(layout, 800, 400);
         primaryStage.setScene(userScene);
-        primaryStage.setTitle("User Page");
+        primaryStage.show();
     }
 }

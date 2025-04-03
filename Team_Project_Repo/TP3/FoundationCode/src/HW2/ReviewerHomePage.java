@@ -147,15 +147,19 @@ public class ReviewerHomePage {
         messagesTab.setContent(createMessagesPane());
         messagesTab.setClosable(false);
         
-        tabPane.getTabs().addAll(reviewsTab, messagesTab);
+        // New Discussion Content tab
+        Tab discussionContentTab = new Tab("Discussion Content");
+        discussionContentTab.setContent(createDiscussionContentPane());
+        discussionContentTab.setClosable(false);
+        
+        tabPane.getTabs().addAll(reviewsTab, messagesTab, discussionContentTab);
         mainLayout.setCenter(tabPane);
         
         // Bottom section - Back button
-        Button backButton = new Button("Back to Welcome Page");
+        Button backButton = new Button("Back to User Page");
         backButton.setOnAction(e -> {
-            // You would need to reimplement this to correctly go back
-            // For now, just close the current window
-            primaryStage.setScene(new Scene(new VBox(), 800, 400));
+            // Return to the user page
+            new UserHomePage(databaseHelper, currentReviewer, "reviewer").show(primaryStage);
         });
         HBox bottomSection = new HBox(backButton);
         bottomSection.setAlignment(Pos.CENTER);
@@ -520,5 +524,250 @@ public class ReviewerHomePage {
         alert.setHeaderText(null);
         alert.setContentText(message);
         alert.showAndWait();
+    }
+
+    private Pane createDiscussionContentPane() {
+        BorderPane contentPane = new BorderPane();
+        contentPane.setPadding(new Insets(10));
+        
+        // Load all questions and answers from the database
+        loadDiscussionContent();
+        
+        // Create a split pane with questions on the left and details on the right
+        SplitPane splitPane = new SplitPane();
+        
+        // Left side - TreeView with questions and their answers
+        VBox leftPane = new VBox(10);
+        Label contentLabel = new Label("Discussion Content");
+        contentLabel.setStyle("-fx-font-weight: bold;");
+        
+        // Create TreeView for questions and answers
+        TreeView<String> contentTreeView = new TreeView<>();
+        TreeItem<String> rootItem = new TreeItem<>("All Content");
+        rootItem.setExpanded(true);
+        contentTreeView.setRoot(rootItem);
+        contentTreeView.setShowRoot(false);
+        
+        // Create a map to store question and answer objects by their TreeItems
+        java.util.Map<TreeItem<String>, Object> itemMap = new java.util.HashMap<>();
+        
+        // Populate tree with questions and their answers
+        for (Question question : questions.getAllQuestions()) {
+            TreeItem<String> questionItem = new TreeItem<>("Q: " + question.getTitle());
+            itemMap.put(questionItem, question);
+            
+            // Add answers under this question
+            List<Answer> questionAnswers = answers.getAnswersForQuestion(question.getId());
+            for (Answer answer : questionAnswers) {
+                String preview = answer.getAnswerText();
+                if (preview.length() > 50) {
+                    preview = preview.substring(0, 47) + "...";
+                }
+                TreeItem<String> answerItem = new TreeItem<>("A: " + preview);
+                itemMap.put(answerItem, answer);
+                questionItem.getChildren().add(answerItem);
+            }
+            
+            rootItem.getChildren().add(questionItem);
+            questionItem.setExpanded(true);
+        }
+        
+        leftPane.getChildren().addAll(contentLabel, contentTreeView);
+        VBox.setVgrow(contentTreeView, javafx.scene.layout.Priority.ALWAYS);
+        
+        // Right side - Content details and review form
+        VBox rightPane = new VBox(10);
+        rightPane.setPadding(new Insets(0, 0, 0, 10));
+        
+        // Content details section
+        VBox detailsSection = new VBox(5);
+        Label detailsLabel = new Label("Content Details");
+        detailsLabel.setStyle("-fx-font-weight: bold;");
+        
+        Label titleLabel = new Label();
+        titleLabel.setWrapText(true);
+        titleLabel.setStyle("-fx-font-weight: bold;");
+        
+        TextArea contentArea = new TextArea();
+        contentArea.setEditable(false);
+        contentArea.setWrapText(true);
+        contentArea.setPrefRowCount(5);
+        
+        Label authorLabel = new Label();
+        authorLabel.setStyle("-fx-font-style: italic;");
+        
+        detailsSection.getChildren().addAll(detailsLabel, titleLabel, contentArea, authorLabel);
+        
+        // Review form section
+        VBox reviewSection = new VBox(5);
+        Label reviewLabel = new Label("Create Review");
+        reviewLabel.setStyle("-fx-font-weight: bold;");
+        
+        TextArea reviewTextArea = new TextArea();
+        reviewTextArea.setPromptText("Enter your review here");
+        reviewTextArea.setWrapText(true);
+        reviewTextArea.setPrefRowCount(4);
+        
+        HBox ratingBox = new HBox(5);
+        ratingBox.setAlignment(Pos.CENTER_LEFT);
+        Label ratingLabel = new Label("Rating: ");
+        ComboBox<Integer> ratingComboBox = new ComboBox<>(
+            FXCollections.observableArrayList(1, 2, 3, 4, 5));
+        ratingComboBox.setValue(3); // Default to middle rating
+        ratingBox.getChildren().addAll(ratingLabel, ratingComboBox);
+        
+        Button submitReviewButton = new Button("Submit Review");
+        submitReviewButton.setStyle("-fx-background-color: #4CAF50; -fx-text-fill: white;");
+        submitReviewButton.setDisable(true); // Initially disabled until content selected
+        
+        reviewSection.getChildren().addAll(reviewLabel, reviewTextArea, ratingBox, submitReviewButton);
+        
+        rightPane.getChildren().addAll(detailsSection, new Separator(), reviewSection);
+        
+        // Handle selection of content
+        contentTreeView.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
+            if (newVal != null && itemMap.containsKey(newVal)) {
+                Object selectedItem = itemMap.get(newVal);
+                
+                if (selectedItem instanceof Question) {
+                    Question question = (Question) selectedItem;
+                    titleLabel.setText("Question: " + question.getTitle());
+                    contentArea.setText(question.getDescription());
+                    authorLabel.setText("Posted by: " + question.getAuthor());
+                    submitReviewButton.setDisable(false);
+                    submitReviewButton.setOnAction(e -> {
+                        createReviewForItem(question.getId(), reviewTextArea.getText(), 
+                                            ratingComboBox.getValue(), "Question", contentTreeView);
+                    });
+                } else if (selectedItem instanceof Answer) {
+                    Answer answer = (Answer) selectedItem;
+                    titleLabel.setText("Answer");
+                    contentArea.setText(answer.getAnswerText());
+                    authorLabel.setText("Posted by: " + answer.getAuthor());
+                    submitReviewButton.setDisable(false);
+                    submitReviewButton.setOnAction(e -> {
+                        createReviewForItem(answer.getId(), reviewTextArea.getText(), 
+                                           ratingComboBox.getValue(), "Answer", contentTreeView);
+                    });
+                }
+            } else {
+                titleLabel.setText("");
+                contentArea.setText("");
+                authorLabel.setText("");
+                submitReviewButton.setDisable(true);
+            }
+        });
+        
+        splitPane.getItems().addAll(leftPane, rightPane);
+        splitPane.setDividerPositions(0.4);
+        contentPane.setCenter(splitPane);
+        
+        return contentPane;
+    }
+
+    private void loadDiscussionContent() {
+        if (databaseHelper == null) {
+            System.err.println("DatabaseHelper is null, using sample data");
+            return;
+        }
+        
+        try {
+            // Clear existing content
+            questions = new Questions();
+            answers = new Answers();
+            
+            // Load all questions
+            String questionsQuery = "SELECT * FROM questions ORDER BY createdAt DESC";
+            try (java.sql.Statement stmt = databaseHelper.getConnection().createStatement();
+                 java.sql.ResultSet rs = stmt.executeQuery(questionsQuery)) {
+                
+                while (rs.next()) {
+                    Question question = new Question(
+                        rs.getString("title"),
+                        rs.getString("description"),
+                        rs.getString("author")
+                    );
+                    question.setId(rs.getString("id"));
+                    questions.addQuestion(question);
+                }
+            }
+            
+            // Load all answers
+            String answersQuery = "SELECT * FROM answers ORDER BY createdAt DESC";
+            try (java.sql.Statement stmt = databaseHelper.getConnection().createStatement();
+                 java.sql.ResultSet rs = stmt.executeQuery(answersQuery)) {
+                
+                while (rs.next()) {
+                    Answer answer;
+                    String parentId = rs.getString("parentAnswerId");
+                    
+                    if (parentId != null && !parentId.isEmpty()) {
+                        // This is a reply to another answer
+                        answer = new Answer(
+                            rs.getString("questionId"),
+                            rs.getString("answerText"),
+                            rs.getString("author"),
+                            parentId
+                        );
+                    } else {
+                        // This is a direct answer to a question
+                        answer = new Answer(
+                            rs.getString("questionId"),
+                            rs.getString("answerText"),
+                            rs.getString("author")
+                        );
+                    }
+                    
+                    answer.setId(rs.getString("id"));
+                    answers.addAnswer(answer);
+                }
+            }
+            
+            System.out.println("Loaded " + questions.getAllQuestions().size() + " questions and " + 
+                              answers.getAllAnswers().size() + " answers from the database.");
+        } catch (SQLException e) {
+            System.err.println("Error loading discussion content: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    private void createReviewForItem(String itemId, String reviewText, int rating, String type, TreeView<String> treeView) {
+        if (reviewText == null || reviewText.trim().isEmpty()) {
+            showAlert("Error", "Review content cannot be empty");
+            return;
+        }
+        
+        try {
+            // Try to fix the reviews table before saving
+            if (databaseHelper != null) {
+                databaseHelper.fixReviewsTable();
+            }
+            
+            // Create the review object
+            Review review = new Review(currentReviewer, reviewText, itemId, rating, type);
+            
+            // Save to database
+            if (databaseHelper != null) {
+                System.out.println("Saving review to database: reviewer=" + currentReviewer + 
+                                  ", itemId=" + itemId + ", rating=" + rating + ", type=" + type);
+                databaseHelper.addReview(review);
+                System.out.println("Review saved successfully with ID: " + review.getId());
+            } else {
+                System.err.println("DatabaseHelper is null, can't save review");
+            }
+            
+            // Add to local collection
+            reviews.addReview(review);
+            
+            // Show confirmation
+            showAlert("Success", "Review submitted successfully!");
+            
+            // Clear the form
+            treeView.getSelectionModel().clearSelection();
+        } catch (SQLException e) {
+            System.err.println("Error saving review: " + e.getMessage());
+            e.printStackTrace();
+            showAlert("Error", "Failed to save review: " + e.getMessage());
+        }
     }
 }

@@ -35,12 +35,12 @@ public class WelcomeLoginPage {
             if(role.equals("admin")) {
                 new AdminHomePage(databaseHelper, user.getUserName()).show(primaryStage);
             }
-            else if(role.equals("user") || role.equals("student") || role.equals("instructor")) {
-                new UserHomePage(databaseHelper, user.getUserName()).show(primaryStage);
-            }
             else if(role.equals("reviewer")) {
-                // Use the DatabaseHelper constructor for ReviewerHomePage
-                new ReviewerHomePage(databaseHelper, user.getUserName()).show(primaryStage);
+                // Instead of directly going to reviewer page, go to user page with reviewer option
+                new UserHomePage(databaseHelper, user.getUserName(), "reviewer").show(primaryStage);
+            }
+            else {
+                new UserHomePage(databaseHelper, user.getUserName()).show(primaryStage);
             }
         });
         

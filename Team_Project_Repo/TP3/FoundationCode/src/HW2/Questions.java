@@ -51,4 +51,7 @@ public class Questions {
                 q.getDescription().toLowerCase().contains(searchTerm))
             .collect(Collectors.toList());
     }
+    public void clearAll() {
+        questions.clear();
+    }
 }

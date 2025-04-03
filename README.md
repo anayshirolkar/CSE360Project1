@@ -42,7 +42,7 @@ This project implements an enhanced discussion forum system supporting multiple 
 - Screencast 1 (Demo, Code & JUnit Testing): [Link](Team_Project_Repo/TP3/Screencasts)  
 - Screencast 2 (Architecture, Design & Code Alignment): [Link](Team_Project_Repo/TP3/Screencasts)  
 - Screencast 3 (Standup Meetings): [Link](Team_Project_Repo/TP3/Screencasts)
-- **Standup Meetings:** [Standup Meetings Link](#)
+- **Standup Meetings:** [Standup Meetings Link](Team_Project_Repo/TP3/StandupMeets)
 
 ## Team Members
 

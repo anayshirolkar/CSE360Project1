@@ -37,22 +37,21 @@ This project implements an enhanced discussion forum system supporting multiple 
 ## Links
 
 - **GitHub Repository:** [GitHub Repo Link](#)
-- **Template:** [Template Link](#)
+- **Template:** [[Template Link](https://arizonastateu-my.sharepoint.com/:w:/g/personal/lfirdaus_sundevils_asu_edu/EbuToRTFtllJpkD7UWVzdWYB1HzZGu38KzH7ULKUcFxoUg)](#)
 - **Screencasts:**  
 - Screencast 1 (Demo, Code & JUnit Testing): [Link](#)  
 - Screencast 2 (Architecture, Design & Code Alignment): [Link](#)  
 - Screencast 3 (Standup Meetings): [Link](#)
-- **Gantt Chart:** [Gantt Chart Link](#)
 - **Standup Meetings:** [Standup Meetings Link](#)
 
 ## Team Members
 
-- Member 1
-- Member 2
-- Member 3
-- Member 4
-- Member 5
-- Member 6
+- Anay Shirolkar
+- Prajakta Kadukar
+- Rishith Mody
+- Chakshu Jain
+- Diya Chaudhary
+- Lubna Firdaus
 
 ## Dependencies
 
@@ -61,6 +60,4 @@ This project implements an enhanced discussion forum system supporting multiple 
 - **Tools:** Astah (for UML diagrams)
 
 ## Notes
-
-- Ensure all repository links and external resources (screencasts, Gantt chart, standup meetings) are accessible.
 - This repository is intended for the CSE360 TP3 submission and includes all source code, documentation, and evidence required for grading.

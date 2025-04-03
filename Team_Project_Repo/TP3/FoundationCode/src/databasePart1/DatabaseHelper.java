@@ -15,7 +15,9 @@ import HW2.Review; // Import the Review class
 import HW2.Message; // Import the Message class
 import HW2.TrustedReviewer; // Import the TrustedReviewer class
 import HW2.Question; // Import the Question class
+import HW2.Questions;
 import HW2.Answer; // Import the Answer class
+import HW2.Answers;
 
 /**
  * The DatabaseHelper class is responsible for managing the connection to the database,
@@ -109,15 +111,26 @@ public class DatabaseHelper {
      * Creates tables needed for reviewer functionality.
      */
     private void createReviewerTables() throws SQLException {
+        // Drop the reviews table if it exists (optional, use carefully)
+        try {
+            statement.execute("DROP TABLE IF EXISTS reviews");
+            System.out.println("Dropped existing reviews table");
+        } catch (SQLException e) {
+            System.err.println("Error dropping reviews table: " + e.getMessage());
+        }
+        
         // Create the reviews table
         String reviewsTable = "CREATE TABLE IF NOT EXISTS reviews ("
                 + "id VARCHAR(36) PRIMARY KEY, "
                 + "reviewer VARCHAR(255), "
                 + "content TEXT, "
                 + "associatedId VARCHAR(36), "
+                + "rating INT DEFAULT 0, "
+                + "type VARCHAR(50), "
                 + "createdAt TIMESTAMP, "
                 + "updatedAt TIMESTAMP)";
         statement.execute(reviewsTable);
+        System.out.println("Created reviews table with all required columns");
         
         // Create the messages table
         String messagesTable = "CREATE TABLE IF NOT EXISTS messages ("
@@ -331,16 +344,34 @@ public class DatabaseHelper {
      * Adds a new review to the database.
      */
     public void addReview(Review review) throws SQLException {
-        String query = "INSERT INTO reviews (id, reviewer, content, associatedId, createdAt, updatedAt) "
-                + "VALUES (?, ?, ?, ?, ?, ?)";
+        // First, make sure the table exists
+        try (Statement stmt = connection.createStatement()) {
+            stmt.execute(
+                "CREATE TABLE IF NOT EXISTS reviews (" +
+                "id VARCHAR(36) PRIMARY KEY, " +
+                "reviewer VARCHAR(255), " +
+                "content TEXT, " +
+                "associatedId VARCHAR(36), " +
+                "rating INT, " +
+                "type VARCHAR(50), " +
+                "createdAt TIMESTAMP, " +
+                "updatedAt TIMESTAMP)"
+            );
+        }
+        
+        // Insert the review
+        String query = "INSERT INTO reviews (id, reviewer, content, associatedId, rating, type, createdAt, updatedAt) " +
+                      "VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
         
         try (PreparedStatement pstmt = connection.prepareStatement(query)) {
             pstmt.setString(1, review.getId());
             pstmt.setString(2, review.getReviewer());
             pstmt.setString(3, review.getContent());
             pstmt.setString(4, review.getAssociatedId());
-            pstmt.setTimestamp(5, new java.sql.Timestamp(review.getCreatedAt().getTime()));
-            pstmt.setTimestamp(6, new java.sql.Timestamp(review.getUpdatedAt().getTime()));
+            pstmt.setInt(5, review.getRating());
+            pstmt.setString(6, review.getType());
+            pstmt.setTimestamp(7, new java.sql.Timestamp(review.getCreatedAt().getTime()));
+            pstmt.setTimestamp(8, new java.sql.Timestamp(review.getUpdatedAt().getTime()));
             
             pstmt.executeUpdate();
         }
@@ -847,8 +878,43 @@ public class DatabaseHelper {
      * Saves a question to the database.
      */
     public void saveQuestion(Question question) throws SQLException {
-        String query = "INSERT INTO questions (id, title, description, author, createdAt, updatedAt) "
-                + "VALUES (?, ?, ?, ?, ?, ?)";
+        // First, make sure the table exists
+        try (Statement stmt = connection.createStatement()) {
+            stmt.execute(
+                "CREATE TABLE IF NOT EXISTS questions (" +
+                "id VARCHAR(36) PRIMARY KEY, " +
+                "title VARCHAR(255), " +
+                "description TEXT, " +
+                "author VARCHAR(255), " +
+                "createdAt TIMESTAMP, " +
+                "updatedAt TIMESTAMP)"
+            );
+        }
+        
+        // Check if question already exists
+        String checkQuery = "SELECT COUNT(*) FROM questions WHERE id = ?";
+        try (PreparedStatement checkStmt = connection.prepareStatement(checkQuery)) {
+            checkStmt.setString(1, question.getId());
+            try (ResultSet rs = checkStmt.executeQuery()) {
+                if (rs.next() && rs.getInt(1) > 0) {
+                    // Question exists, update it
+                    String updateQuery = "UPDATE questions SET title = ?, description = ?, updatedAt = ? WHERE id = ?";
+                    try (PreparedStatement updateStmt = connection.prepareStatement(updateQuery)) {
+                        updateStmt.setString(1, question.getTitle());
+                        updateStmt.setString(2, question.getDescription());
+                        updateStmt.setTimestamp(3, new java.sql.Timestamp(System.currentTimeMillis()));
+                        updateStmt.setString(4, question.getId());
+                        updateStmt.executeUpdate();
+                        System.out.println("Updated question: " + question.getId());
+                    }
+                    return;
+                }
+            }
+        }
+        
+        // Question doesn't exist, insert it
+        String query = "INSERT INTO questions (id, title, description, author, createdAt, updatedAt) " +
+                "VALUES (?, ?, ?, ?, ?, ?)";
         
         try (PreparedStatement pstmt = connection.prepareStatement(query)) {
             pstmt.setString(1, question.getId());
@@ -859,6 +925,7 @@ public class DatabaseHelper {
             pstmt.setTimestamp(6, new java.sql.Timestamp(question.getUpdatedAt().getTime()));
             
             pstmt.executeUpdate();
+            System.out.println("Saved new question: " + question.getId());
         }
     }
 
@@ -866,8 +933,43 @@ public class DatabaseHelper {
      * Saves an answer to the database.
      */
     public void saveAnswer(Answer answer) throws SQLException {
-        String query = "INSERT INTO answers (id, questionId, answerText, author, parentAnswerId, createdAt, updatedAt) "
-                + "VALUES (?, ?, ?, ?, ?, ?, ?)";
+        // First, make sure the table exists
+        try (Statement stmt = connection.createStatement()) {
+            stmt.execute(
+                "CREATE TABLE IF NOT EXISTS answers (" +
+                "id VARCHAR(36) PRIMARY KEY, " +
+                "questionId VARCHAR(36), " +
+                "answerText TEXT, " +
+                "author VARCHAR(255), " +
+                "parentAnswerId VARCHAR(36), " +
+                "createdAt TIMESTAMP, " +
+                "updatedAt TIMESTAMP)"
+            );
+        }
+        
+        // Check if answer already exists
+        String checkQuery = "SELECT COUNT(*) FROM answers WHERE id = ?";
+        try (PreparedStatement checkStmt = connection.prepareStatement(checkQuery)) {
+            checkStmt.setString(1, answer.getId());
+            try (ResultSet rs = checkStmt.executeQuery()) {
+                if (rs.next() && rs.getInt(1) > 0) {
+                    // Answer exists, update it
+                    String updateQuery = "UPDATE answers SET answerText = ?, updatedAt = ? WHERE id = ?";
+                    try (PreparedStatement updateStmt = connection.prepareStatement(updateQuery)) {
+                        updateStmt.setString(1, answer.getAnswerText());
+                        updateStmt.setTimestamp(2, new java.sql.Timestamp(System.currentTimeMillis()));
+                        updateStmt.setString(3, answer.getId());
+                        updateStmt.executeUpdate();
+                        System.out.println("Updated answer: " + answer.getId());
+                    }
+                    return;
+                }
+            }
+        }
+
+        // Answer doesn't exist, insert it
+        String query = "INSERT INTO answers (id, questionId, answerText, author, parentAnswerId, createdAt, updatedAt) " +
+                "VALUES (?, ?, ?, ?, ?, ?, ?)";
         
         try (PreparedStatement pstmt = connection.prepareStatement(query)) {
             pstmt.setString(1, answer.getId());
@@ -879,6 +981,7 @@ public class DatabaseHelper {
             pstmt.setTimestamp(7, new java.sql.Timestamp(answer.getUpdatedAt().getTime()));
             
             pstmt.executeUpdate();
+            System.out.println("Saved new answer: " + answer.getId());
         }
     }
 
@@ -957,6 +1060,38 @@ public class DatabaseHelper {
             // Table may not exist yet, which is fine
             System.err.println("Note: " + e.getMessage());
         }
+
+        try {
+            // Check if the reviews table has the rating column
+            Statement stmt = connection.createStatement();
+            ResultSet rs = stmt.executeQuery("SELECT * FROM reviews LIMIT 1");
+            boolean hasRatingColumn = false;
+            boolean hasTypeColumn = false;
+
+            ResultSetMetaData meta = rs.getMetaData();
+            for (int i = 1; i <= meta.getColumnCount(); i++) {
+                if ("rating".equalsIgnoreCase(meta.getColumnName(i))) {
+                    hasRatingColumn = true;
+                }
+                if ("type".equalsIgnoreCase(meta.getColumnName(i))) {
+                    hasTypeColumn = true;
+                }
+            }
+
+            if (!hasRatingColumn) {
+                System.out.println("Adding missing rating column to reviews table");
+                stmt.executeUpdate("ALTER TABLE reviews ADD COLUMN rating INT DEFAULT 0");
+            }
+
+            if (!hasTypeColumn) {
+                System.out.println("Adding missing type column to reviews table");
+                stmt.executeUpdate("ALTER TABLE reviews ADD COLUMN type VARCHAR(50)");
+            }
+
+            stmt.close();
+        } catch (SQLException e) {
+            System.err.println("Error during database migration: " + e.getMessage());
+        }
     }
 
     /**
@@ -1007,6 +1142,184 @@ public class DatabaseHelper {
         } catch (Exception e) {
             System.err.println("Error running diagnostics: " + e.getMessage());
             e.printStackTrace();
+        }
+    }
+
+    /**
+     * Deletes a question from the database.
+     */
+    public void deleteQuestion(String questionId) throws SQLException {
+        // First, delete all answers associated with this question
+        String deleteAnswersQuery = "DELETE FROM answers WHERE questionId = ?";
+        try (PreparedStatement pstmt = connection.prepareStatement(deleteAnswersQuery)) {
+            pstmt.setString(1, questionId);
+            int answersDeleted = pstmt.executeUpdate();
+            System.out.println("Deleted " + answersDeleted + " answers for question: " + questionId);
+        }
+        
+        // Then delete the question itself
+        String deleteQuestionQuery = "DELETE FROM questions WHERE id = ?";
+        try (PreparedStatement pstmt = connection.prepareStatement(deleteQuestionQuery)) {
+            pstmt.setString(1, questionId);
+            int result = pstmt.executeUpdate();
+            if (result > 0) {
+                System.out.println("Deleted question: " + questionId);
+            } else {
+                System.out.println("Question not found: " + questionId);
+            }
+        }
+    }
+
+    /**
+     * Deletes an answer from the database.
+     */
+    public void deleteAnswer(String answerId) throws SQLException {
+        // First, delete all replies to this answer
+        String deleteRepliesQuery = "DELETE FROM answers WHERE parentAnswerId = ?";
+        try (PreparedStatement pstmt = connection.prepareStatement(deleteRepliesQuery)) {
+            pstmt.setString(1, answerId);
+            int repliesDeleted = pstmt.executeUpdate();
+            System.out.println("Deleted " + repliesDeleted + " replies to answer: " + answerId);
+        }
+        
+        // Then delete the answer itself
+        String deleteAnswerQuery = "DELETE FROM answers WHERE id = ?";
+        try (PreparedStatement pstmt = connection.prepareStatement(deleteAnswerQuery)) {
+            pstmt.setString(1, answerId);
+            int result = pstmt.executeUpdate();
+            if (result > 0) {
+                System.out.println("Deleted answer: " + answerId);
+            } else {
+                System.out.println("Answer not found: " + answerId);
+            }
+        }
+    }
+
+    /**
+     * Get all reviews for a specific item (question, answer, etc.)
+     * 
+     * @param associatedId The ID of the item for which to retrieve reviews
+     * @return List of reviews for the associated item
+     * @throws SQLException If a database error occurs
+     */
+    public List<Review> getReviewsForAssociatedId(String associatedId) throws SQLException {
+        List<Review> reviews = new ArrayList<>();
+        
+        String query = "SELECT * FROM reviews WHERE associatedId = ? ORDER BY createdAt DESC";
+        
+        try (PreparedStatement stmt = connection.prepareStatement(query)) {
+            stmt.setString(1, associatedId);
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    Review review = new Review(
+                        rs.getString("reviewer"),
+                        rs.getString("content"),
+                        rs.getString("associatedId"),
+                        rs.getInt("rating"),
+                        rs.getString("type")
+                    );
+                    review.setId(rs.getString("id"));
+                    review.setCreatedAt(new java.util.Date(rs.getTimestamp("createdAt").getTime()));
+                    review.setUpdatedAt(new java.util.Date(rs.getTimestamp("updatedAt").getTime()));
+                    reviews.add(review);
+                }
+            }
+        }
+        
+        return reviews;
+    }
+
+    /**
+     * Manually fixes the reviews table by adding any missing columns
+     */
+    public void fixReviewsTable() throws SQLException {
+        try {
+            Statement stmt = connection.createStatement();
+            
+            // Try to add the type column if it doesn't exist
+            try {
+                stmt.executeUpdate("ALTER TABLE reviews ADD COLUMN type VARCHAR(50)");
+                System.out.println("Added 'type' column to reviews table");
+            } catch (SQLException e) {
+                // Column might already exist or table might not exist
+                if (e.getMessage().contains("Duplicate column")) {
+                    System.out.println("Column 'type' already exists in reviews table");
+                } else {
+                    throw e;
+                }
+            }
+            
+            // Try to add the rating column if it doesn't exist
+            try {
+                stmt.executeUpdate("ALTER TABLE reviews ADD COLUMN rating INT DEFAULT 0");
+                System.out.println("Added 'rating' column to reviews table");
+            } catch (SQLException e) {
+                // Column might already exist
+                if (e.getMessage().contains("Duplicate column")) {
+                    System.out.println("Column 'rating' already exists in reviews table");
+                } else {
+                    throw e;
+                }
+            }
+            
+            stmt.close();
+        } catch (SQLException e) {
+            System.err.println("Error fixing reviews table: " + e.getMessage());
+            throw e;
+        }
+    }
+
+    /**
+     * Loads all discussion content (questions and answers) from the database
+     */
+    public void loadAllDiscussionContent(Questions questions, Answers answers) throws SQLException {
+        // Clear existing content
+        questions.clearAll();
+        answers.clearAll();
+        
+        // Load all questions
+        String questionsQuery = "SELECT * FROM questions ORDER BY createdAt DESC";
+        try (Statement stmt = connection.createStatement();
+             ResultSet rs = stmt.executeQuery(questionsQuery)) {
+            
+            while (rs.next()) {
+                Question question = new Question(
+                    rs.getString("title"),
+                    rs.getString("description"),
+                    rs.getString("author")
+                );
+                question.setId(rs.getString("id"));
+                questions.addQuestion(question);
+            }
+        }
+        
+        // Load all answers
+        String answersQuery = "SELECT * FROM answers ORDER BY createdAt DESC";
+        try (Statement stmt = connection.createStatement();
+             ResultSet rs = stmt.executeQuery(answersQuery)) {
+            
+            while (rs.next()) {
+                Answer answer;
+                String parentId = rs.getString("parentAnswerId");
+                
+                if (parentId != null && !parentId.isEmpty()) {
+                    answer = new Answer(
+                        rs.getString("questionId"),
+                        rs.getString("answerText"),
+                        rs.getString("author"),
+                        parentId
+                    );
+                } else {
+                    answer = new Answer(
+                        rs.getString("questionId"),
+                        rs.getString("answerText"),
+                        rs.getString("author")
+                    );
+                }
+                
+                answer.setId(rs.getString("id"));
+                answers.addAnswer(answer);
+            }
         }
     }
 

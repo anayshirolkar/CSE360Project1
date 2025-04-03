@@ -1,0 +1,1 @@
+typeSearchIndex = [{"l":"All Classes and Interfaces","u":"allclasses-index.html"},{"p":"HW2","l":"AnswersTest"},{"p":"databasePart1","l":"DatabaseHelperTest"},{"p":"HW2","l":"QuestionsTest"},{"p":"HW2","l":"ReviewsTest"},{"p":"HW2","l":"ReviewTest"},{"p":"HW2","l":"TrustedReviewerTest"}];updateSearchResults();

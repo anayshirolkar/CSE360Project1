@@ -419,7 +419,7 @@ public class StudentReviewsPage {
         // Define columns
         TableColumn<TrustedReviewer, String> usernameCol = new TableColumn<>("Username");
         usernameCol.setCellValueFactory(cellData -> new javafx.beans.property.SimpleStringProperty(
-                cellData.getValue().getUsername()));
+                cellData.getValue().getReviewerUsername()));
         usernameCol.setPrefWidth(200);
         
         TableColumn<TrustedReviewer, Number> weightCol = new TableColumn<>("Weight");
@@ -718,7 +718,7 @@ public class StudentReviewsPage {
     private void showEditWeightDialog(TrustedReviewer reviewer) {
         Dialog<ButtonType> dialog = new Dialog<>();
         dialog.setTitle("Edit Weight");
-        dialog.setHeaderText("Edit weight for reviewer: " + reviewer.getUsername());
+        dialog.setHeaderText("Edit weight for reviewer: " + reviewer.getReviewerUsername());
         
         // Set button types
         ButtonType saveButtonType = new ButtonType("Save", ButtonBar.ButtonData.OK_DONE);
@@ -742,9 +742,9 @@ public class StudentReviewsPage {
             if (result == saveButtonType) {
                 int newWeight = weightSpinner.getValue();
                 try {
-                    databaseHelper.updateTrustedReviewerWeight(username, reviewer.getUsername(), newWeight);
+                    databaseHelper.updateTrustedReviewerWeight(username, reviewer.getReviewerUsername(), newWeight);
                     reviewer.setWeight(newWeight); // Update the object
-                    showAlert("Success", "Weight updated for " + reviewer.getUsername());
+                    showAlert("Success", "Weight updated for " + reviewer.getReviewerUsername());
                 } catch (SQLException e) {
                     showAlert("Error", "Failed to update weight: " + e.getMessage());
                 }
@@ -755,15 +755,15 @@ public class StudentReviewsPage {
     private void showRemoveReviewerConfirmation(TrustedReviewer reviewer, TableView<TrustedReviewer> table) {
         Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
         alert.setTitle("Remove Trusted Reviewer");
-        alert.setHeaderText("Are you sure you want to remove " + reviewer.getUsername() + " from your trusted reviewers?");
+        alert.setHeaderText("Are you sure you want to remove " + reviewer.getReviewerUsername() + " from your trusted reviewers?");
         alert.setContentText("This action cannot be undone.");
         
         alert.showAndWait().ifPresent(result -> {
             if (result == ButtonType.OK) {
                 try {
-                    databaseHelper.removeTrustedReviewer(username, reviewer.getUsername());
+                    databaseHelper.removeTrustedReviewer(username, reviewer.getReviewerUsername());
                     table.getItems().remove(reviewer);
-                    showAlert("Success", reviewer.getUsername() + " removed from your trusted reviewers");
+                    showAlert("Success", reviewer.getReviewerUsername() + " removed from your trusted reviewers");
                 } catch (SQLException e) {
                     showAlert("Error", "Failed to remove reviewer: " + e.getMessage());
                 }

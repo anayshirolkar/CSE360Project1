@@ -1219,8 +1219,8 @@ public class DatabaseHelper {
                         rs.getString("type")
                     );
                     review.setId(rs.getString("id"));
-                    review.setCreatedAt(new java.util.Date(rs.getTimestamp("createdAt").getTime()));
-                    review.setUpdatedAt(new java.util.Date(rs.getTimestamp("updatedAt").getTime()));
+                    review.setCreatedDate(new java.util.Date(rs.getTimestamp("createdAt").getTime()));
+                    review.setUpdatedDate(new java.util.Date(rs.getTimestamp("updatedAt").getTime()));
                     reviews.add(review);
                 }
             }
@@ -1321,6 +1321,54 @@ public class DatabaseHelper {
                 answers.addAnswer(answer);
             }
         }
+    }
+
+    /**
+     * Gets all reviews by a specific reviewer.
+     */
+    public List<Review> getReviewsByReviewer1(String reviewer) throws SQLException {
+        List<Review> results = new ArrayList<>();
+        
+        String query = "SELECT * FROM reviews WHERE reviewer = ?";
+        try (PreparedStatement pstmt = connection.prepareStatement(query)) {
+            pstmt.setString(1, reviewer);
+            
+            try (ResultSet rs = pstmt.executeQuery()) {
+                while (rs.next()) {
+                    Review review = new Review(
+                        rs.getString("reviewer"),
+                        rs.getString("content"),
+                        rs.getString("associatedId")
+                    );
+                    
+                    review.setId(rs.getString("id"));
+                    
+                    // Handle optional fields
+                    int rating = rs.getInt("rating");
+                    review.setRating(rating);
+                    
+                    String type = rs.getString("type");
+                    if (type != null && !type.isEmpty()) {
+                        review.setType(type);
+                    }
+                    
+                    // Handle dates if present
+                    java.sql.Timestamp createdAt = rs.getTimestamp("createdAt");
+                    if (createdAt != null) {
+                        review.setCreatedDate(new Date(createdAt.getTime()));
+                    }
+                    
+                    java.sql.Timestamp updatedAt = rs.getTimestamp("updatedAt");
+                    if (updatedAt != null) {
+                        review.setUpdatedDate(new Date(updatedAt.getTime()));
+                    }
+                    
+                    results.add(review);
+                }
+            }
+        }
+        
+        return results;
     }
 
 }

@@ -1,6 +1,7 @@
 package HW2;
 
 import java.util.Date;
+import java.util.UUID;
 
 public class Message {
     private String id;
@@ -11,7 +12,13 @@ public class Message {
     private String relatedId;
 
     public Message(String sender, String recipient, String content) {
-        this.id = java.util.UUID.randomUUID().toString();
+        if (sender == null || recipient == null || content == null) {
+            throw new IllegalArgumentException("Sender, recipient, and content cannot be null");
+        }
+        if (sender.trim().isEmpty() || recipient.trim().isEmpty()) {
+            throw new IllegalArgumentException("Sender and recipient cannot be empty");
+        }
+        this.id = UUID.randomUUID().toString();
         this.sender = sender;
         this.recipient = recipient;
         this.content = content;

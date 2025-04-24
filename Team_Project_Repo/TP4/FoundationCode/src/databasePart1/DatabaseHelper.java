@@ -514,15 +514,16 @@ public class DatabaseHelper {
      * Sends a message and stores it in the database.
      */
     public void sendMessage(Message message) throws SQLException {
-        String query = "INSERT INTO messages (id, sender, recipient, content, sentAt) "
-                + "VALUES (?, ?, ?, ?, ?)";
+        String query = "INSERT INTO messages (id, sender, recipient, content, related_id, sentAt) "
+                + "VALUES (?, ?, ?, ?, ?, ?)";
         
         try (PreparedStatement pstmt = connection.prepareStatement(query)) {
             pstmt.setString(1, message.getId());
             pstmt.setString(2, message.getSender());
             pstmt.setString(3, message.getRecipient());
             pstmt.setString(4, message.getContent());
-            pstmt.setTimestamp(5, new java.sql.Timestamp(message.getSentAt().getTime()));
+            pstmt.setString(5, message.getRelatedId());
+            pstmt.setTimestamp(6, new java.sql.Timestamp(message.getSentAt().getTime()));
             
             pstmt.executeUpdate();
         }
@@ -2241,6 +2242,19 @@ public class DatabaseHelper {
         } catch (Exception e) {
             System.err.println("Error hashing password: " + e.getMessage());
             return password; // Fallback if hashing fails
+        }
+    }
+
+    /**
+     * Clears all messages for a specific recipient
+     * @param recipient The username of the recipient
+     * @throws SQLException if a database error occurs
+     */
+    public void clearMessagesForRecipient(String recipient) throws SQLException {
+        String sql = "DELETE FROM messages WHERE recipient = ?";
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setString(1, recipient);
+            stmt.executeUpdate();
         }
     }
 }

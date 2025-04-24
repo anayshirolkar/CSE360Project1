@@ -307,26 +307,12 @@ public class StudentReviewsPage {
                 
                 // Try multiple methods in case one doesn't exist or has a different name
                 try {
-                    // First attempt: try getReviewsForItem
+                    // First attempt: try getReviewsForAssociatedId
                     answerReviews = databaseHelper.getReviewsForAssociatedId(answer.getId());
                 } catch (Exception e1) {
-                    System.out.println("getReviewsForItem failed: " + e1.getMessage());
-                    
-                    try {
-                        // Second attempt: try getReviewsForAssociatedId
-                        answerReviews = databaseHelper.getReviewsForAssociatedId(answer.getId());
-                    } catch (Exception e2) {
-                        System.out.println("getReviewsForAssociatedId failed: " + e2.getMessage());
-                        
-                        try {
-                            // Third attempt: try getReviewsByAssociatedId
-                            answerReviews = databaseHelper.getReviewsForAssociatedId(answer.getId());
-                        } catch (Exception e3) {
-                            System.out.println("getReviewsByAssociatedId failed: " + e3.getMessage());
-                            // If all methods fail, create empty list
-                            answerReviews = new ArrayList<>();
-                        }
-                    }
+                    System.out.println("getReviewsForAssociatedId failed: " + e1.getMessage());
+                    // If method fails, create empty list
+                    answerReviews = new ArrayList<>();
                 }
                 
                 if (answerReviews != null && !answerReviews.isEmpty()) {

@@ -126,13 +126,10 @@ public class Review {
      */
     public void setRating(int rating) {
         // Apply validation rules
-        if (rating < MIN_RATING) {
-            this.rating = MIN_RATING;
-        } else if (rating > MAX_RATING) {
-            this.rating = MAX_RATING;
-        } else {
-            this.rating = rating;
+        if (rating < MIN_RATING || rating > MAX_RATING) {
+            throw new IllegalArgumentException("Rating must be between " + MIN_RATING + " and " + MAX_RATING);
         }
+        this.rating = rating;
         this.updatedAt = new Date(); // Update the timestamp
     }
     
